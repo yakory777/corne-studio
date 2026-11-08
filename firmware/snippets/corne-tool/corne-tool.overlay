@@ -1,0 +1,6 @@
+/* Второй USB-интерфейс: виртуальный COM-порт для Corne Studio */
+&zephyr_udc0 {
+    corne_tool_uart: corne_tool_uart {
+        compatible = "zephyr,cdc-acm-uart";
+    };
+};

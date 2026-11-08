@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:" />
+  <title>Corne Studio</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <aside class="nav">
+    <div class="brand"><span class="logo">◆</span> Corne Studio</div>
+    <button class="nav-btn active" data-tab="overview"><span>⌂</span>Обзор</button>
+    <button class="nav-btn" data-tab="layers"><span>▦</span>Слои</button>
+    <button class="nav-btn" data-tab="lighting"><span>✺</span>Подсветка</button>
+    <button class="nav-btn" data-tab="screen"><span>▭</span>Экран</button>
+    <button class="nav-btn" data-tab="profiles"><span>◎</span>Профили</button>
+    <button class="nav-btn" data-tab="trainer"><span>⌨</span>Тренажёр</button>
+    <button class="nav-btn" data-tab="games"><span>★</span>Игры</button>
+    <button class="nav-btn" data-tab="tools"><span>✎</span>Инструменты</button>
+    <button class="nav-btn" data-tab="stats"><span>▤</span>Статистика</button>
+    <button class="nav-btn" data-tab="firmware"><span>⇩</span>Прошивка</button>
+    <button class="nav-btn" data-tab="debug"><span>⚙</span>Дебаг</button>
+    <div class="nav-foot" id="navFoot">v0.7.0</div>
+  </aside>
+
+  <main>
+    <header class="topbar">
+      <h1 id="tabTitle">Обзор</h1>
+      <div class="conn">
+        <span class="pill" id="connPill"><i></i><b id="connText">Не подключено</b></span>
+        <button class="btn" id="demoBtn" title="Виртуальная клавиатура — попробовать всё без платы">Демо</button>
+        <button class="btn primary" id="connectBtn">Подключить</button>
+      </div>
+    </header>
+
+    <!-- ============ ОБЗОР ============ -->
+    <section class="tab active" id="tab-overview">
+      <div class="card demo-card" id="demoCard" hidden>
+        <h2>Виртуальная клавиатура <span class="tag">демо-режим</span></h2>
+        <div class="grid2" style="margin:0">
+          <div id="demoKb" class="kb-wrap"></div>
+          <div>
+            <canvas id="demoOled" width="128" height="32"></canvas>
+            <p class="hint">Так видит всё клавиатура: подсветка главной половины и её экран. Печатайте на клавиатуре компьютера —
+              нажатия идут как с Corne (статистика, игры, тренажёр, подсказки). <b>F1</b>/<b>F2</b> — слои Lower/Raise. «Отключить» — выйти из демо.</p>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Клавиатура</h2>
+          <div class="info" id="infoGrid">
+            <div><label>Роль</label><b data-info="role">—</b></div>
+            <div><label>Модуль</label><b data-info="fw">—</b></div>
+            <div><label>Батарея</label><b data-info="bat">—</b></div>
+            <div><label>USB</label><b data-info="usb">—</b></div>
+            <div><label>Профиль BT</label><b data-info="profile">—</b></div>
+            <div><label>Слой</label><b data-info="layer_name">—</b></div>
+            <div><label>Светодиодов</label><b data-info="leds">—</b></div>
+            <div><label>Подсветка</label><b data-info="rgb">—</b></div>
+            <div><label>Экран</label><b data-info="display">—</b></div>
+          </div>
+          <p class="hint">Подключайте по USB <b>главную</b> половину — в её прошивке есть модуль Corne Studio.
+            Вторая половина общается с компьютером только через главную. Какая половина главная — меняется на вкладке «Прошивка».</p>
+        </div>
+        <div class="card">
+          <h2>Живая клавиатура</h2>
+          <div id="overviewKb" class="kb-wrap"></div>
+          <p class="hint">Нажатия подсвечиваются в реальном времени, обе половины.</p>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Статус Claude <span class="tag" id="claudeTag">нет данных</span></h2>
+          <p class="hint" style="margin-top:0">Пока Claude Code работает, подсветка снизу плавно светится синим, когда ждёт ответа — мигает оранжевым,
+            закончил — короткая зелёная вспышка. Подключение — одна настройка Claude Code, см. README → «Статус Claude».</p>
+          <div class="row wrap">
+            <button class="btn" data-claude="working">Тест: думает</button>
+            <button class="btn" data-claude="waiting">Тест: ждёт</button>
+            <button class="btn" data-claude="done">Тест: готово</button>
+            <button class="btn ghost" data-claude="idle">Сбросить</button>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Подсказки горячих клавиш <span class="tag" id="hkSetTag">Windows</span></h2>
+          <p class="hint" style="margin-top:0">Зажмите Ctrl, Win, Alt или Shift — на клавиатуре загорятся клавиши, у которых есть действие,
+            а здесь появится список. Набор выбирается по активной программе (вкладка «Профили»).</p>
+          <div id="hkList" class="hk-list"><span class="muted">Зажмите модификатор…</span></div>
+          <label class="check"><input type="checkbox" id="hkOn" checked /> Подсвечивать на клавиатуре</label>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Приложение</h2>
+        <div class="row wrap">
+          <label class="check"><input type="checkbox" id="optAutostart" /> Запускать вместе с Windows (свёрнутым в трей)</label>
+          <label class="check"><input type="checkbox" id="optTray" checked /> Крестик сворачивает в трей</label>
+        </div>
+        <p class="hint">В трее (возле часов) — заряд и слой, быстрое включение подсветки. Полный выход — правой кнопкой по значку → «Выход».</p>
+      </div>
+    </section>
+
+    <!-- ============ СЛОИ ============ -->
+    <section class="tab" id="tab-layers">
+      <div class="card">
+        <div class="row">
+          <button class="btn" id="kmOpen">Открыть corne.keymap</button>
+          <button class="btn" id="kmFromRepo" hidden>Из папки репозитория</button>
+          <button class="btn" id="kmSave" disabled>Сохранить</button>
+          <button class="btn" id="kmSaveAs" disabled>Сохранить как…</button>
+          <button class="btn" id="kmPdf">Шпаргалка PDF</button>
+          <span class="muted" id="kmPath">Файл не открыт</span>
+        </div>
+        <div class="row layer-tabs" id="layerTabs"></div>
+        <div id="layersKb" class="kb-wrap"></div>
+        <div class="row" id="kmEditor" hidden>
+          <label>Клавиша <b id="kmPos">—</b></label>
+          <input id="kmBinding" class="mono grow" spellcheck="false" />
+          <button class="btn primary" id="kmApply">Применить</button>
+          <label>Название слоя</label>
+          <input id="kmLayerName" class="mono" style="width:140px" />
+        </div>
+        <div id="picker" hidden></div>
+        <p class="hint">Клик по клавише — редактировать привязку (<code>&amp;kp A</code>, <code>&amp;mo 1</code>, <code>&amp;trans</code>, <code>&amp;bt BT_SEL 0</code>…).
+          После сохранения закоммитьте файл в репозиторий и прошейте новую сборку на вкладке «Прошивка».
+          При подключённой клавиатуре активный слой и нажатия видны прямо здесь.</p>
+      </div>
+    </section>
+
+    <!-- ============ ПОДСВЕТКА ============ -->
+    <section class="tab" id="tab-lighting">
+      <div class="grid2">
+        <div class="card">
+          <h2>Свои режимы <span class="tag">поток с компьютера · главная половина</span></h2>
+          <div class="row">
+            <select id="effSelect" class="grow"></select>
+            <button class="btn" id="effSave">Сохранить как режим</button>
+            <button class="btn ghost" id="effDelete" title="Удалить свой режим">✕</button>
+          </div>
+          <div class="params">
+            <label data-param="color1">Цвет 1 <input type="color" id="pColor1" /></label>
+            <label data-param="color2">Цвет 2 <input type="color" id="pColor2" /></label>
+            <label data-param="speed">Скорость <input type="range" id="pSpeed" min="0.1" max="4" step="0.1" /></label>
+            <label data-param="size">Размер <input type="range" id="pSize" min="0.3" max="3" step="0.1" /></label>
+            <label>Яркость <input type="range" id="pBright" min="0.05" max="1" step="0.05" /></label>
+          </div>
+          <textarea id="pCode" class="mono code" spellcheck="false" hidden></textarea>
+          <div class="row" id="audioRow" hidden>
+            <button class="btn" id="audioBtn">♪ Слушать звук компьютера</button>
+            <span class="muted" id="audioStat">эквалайзеру нужен звук Windows — разрешение спрашивать не нужно</span>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="streamBtn">▶ Включить на клавиатуре</button>
+            <span class="muted" id="streamStat"></span>
+          </div>
+          <p class="hint">Пока режим включён, компьютер рисует кадры 30 раз в секунду и отправляет их на главную половину.
+            Реактивные эффекты используют нажатия с обеих половин. Без приложения клавиатура вернётся к встроенной подсветке.</p>
+        </div>
+        <div class="card">
+          <h2>Предпросмотр</h2>
+          <div id="lightKb" class="kb-wrap"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Встроенная подсветка ZMK <span class="tag">обе половины, сохраняется в клавиатуре</span></h2>
+        <div class="row wrap">
+          <button class="btn" data-rgb="TOG">Вкл/выкл</button>
+          <button class="btn" data-rgb="EFR">◀ Эффект</button>
+          <button class="btn" data-rgb="EFF">Эффект ▶</button>
+          <button class="btn" data-efs="0">Цвет</button>
+          <button class="btn" data-efs="1">Дыхание</button>
+          <button class="btn" data-efs="2">Спектр</button>
+          <button class="btn" data-efs="3">Вихрь</button>
+          <button class="btn" data-rgb="SPD">Медленнее</button>
+          <button class="btn" data-rgb="SPI">Быстрее</button>
+        </div>
+        <div class="params">
+          <label>Оттенок <input type="range" id="hsbH" min="0" max="359" value="0" /></label>
+          <label>Насыщенность <input type="range" id="hsbS" min="0" max="100" value="100" /></label>
+          <label>Яркость <input type="range" id="hsbB" min="0" max="100" value="30" /></label>
+          <span class="swatch" id="hsbSwatch"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ЭКРАН ============ -->
+    <section class="tab" id="tab-screen">
+      <div class="card sd-card">
+        <div class="row wrap">
+          <h2 style="margin:0">Конструктор экрана</h2>
+          <span class="tag">картинка 128×32 · кириллица · анимации</span>
+          <span class="grow"></span>
+          <label class="check"><input type="checkbox" id="sdOn" /> <b>Показывать на клавиатуре</b></label>
+          <label>Яркость экрана <input type="range" id="sdContrast" min="1" max="255" /></label>
+        </div>
+        <div class="sd-grid">
+          <div>
+            <h3 class="sd-h">Страницы <span class="muted">— сменяют друг друга</span></h3>
+            <div id="sdPages" class="list sd-list"></div>
+            <div class="row"><select id="sdTemplate" class="grow"></select><button class="btn" id="sdAddPage">+ Страница</button></div>
+            <div id="sdPageProps">
+              <div class="row"><input id="sdPageName" class="grow" /><label>сек <input type="number" id="sdPageDur" min="1" style="width:60px" /></label></div>
+              <div class="row"><label>Переход</label><select id="sdPageTrans" class="grow"></select></div>
+              <div class="row"><label class="check"><input type="checkbox" id="sdPageInv" /> Инверсия</label>
+                <span class="grow"></span><button class="btn ghost" id="sdUpPage">↑ выше</button><button class="btn ghost" id="sdDelPage">Удалить</button></div>
+            </div>
+          </div>
+          <div>
+            <canvas id="sdPreview" width="512" height="128"></canvas>
+            <div class="row wrap">
+              <select id="sdElType"></select><button class="btn" id="sdAddEl">+ Элемент</button>
+              <button class="btn" id="sdImgBtn">+ Картинка / GIF…</button>
+              <button class="btn" id="sdNewDraw">+ Рисунок</button>
+              <input type="file" id="sdImgFile" accept="image/*" hidden />
+              <label class="check"><input type="checkbox" id="sdImgFull" checked /> во весь экран</label>
+              <label class="check"><input type="checkbox" id="sdImgDither" checked /> дизеринг</label>
+              <label class="check"><input type="checkbox" id="sdImgInvert" /> инвертировать</label>
+              <label>порог <input type="range" id="sdImgThr" min="20" max="235" value="128" style="width:80px" /></label>
+            </div>
+            <div class="row wrap sd-paint" id="sdPaint" hidden>
+              <button class="btn" id="sdEditBtn">✎ Рисовать</button>
+              <button class="btn active" data-tool="pen">Кисть</button>
+              <button class="btn" data-tool="eraser">Ластик</button>
+              <button class="btn" data-tool="line">Линия</button>
+              <button class="btn" data-tool="rect">Прямоугольник</button>
+              <button class="btn" data-tool="fill">Заливка</button>
+              <label>размер <select id="sdBrush"><option>1</option><option>2</option><option>3</option></select></label>
+              <button class="btn ghost" id="sdPxInvert">Инверсия</button>
+              <button class="btn ghost" id="sdPxFlip">Зеркало</button>
+              <button class="btn ghost" id="sdPxClear">Очистить</button>
+              <span class="muted">правая кнопка мыши — стирать</span>
+            </div>
+            <div class="sd-two">
+              <div><h3 class="sd-h">Элементы страницы</h3><div id="sdEls" class="list sd-list"></div></div>
+              <div><h3 class="sd-h">Свойства</h3><div id="sdProps"></div></div>
+            </div>
+            <p class="hint">Подстановки (клик — вставить в выбранный текст): <span id="sdVars"></span></p>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Реакции и заставка</h2>
+          <div id="sdEvents"></div>
+          <p class="hint">По событию на экране на несколько секунд появится выбранная страница. Заставка включается, если долго не нажимать клавиши.</p>
+        </div>
+        <div class="card">
+          <h2>Ночной режим и файлы</h2>
+          <div class="row wrap">
+            <label class="check"><input type="checkbox" id="sdNightOn" /> Приглушать экран ночью</label>
+            <label>с <input type="time" id="sdNightFrom" /></label>
+            <label>до <input type="time" id="sdNightTo" /></label>
+          </div>
+          <div class="row"><label>Ночная яркость <input type="range" id="sdNightC" min="1" max="120" /></label></div>
+          <div class="row"><button class="btn" id="sdExport">Сохранить дизайн в файл…</button><button class="btn" id="sdImport">Загрузить дизайн…</button></div>
+          <p class="hint">Файл дизайна (.json) — все страницы, картинки, реакции. Можно делиться с другими владельцами Corne.</p>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Простой текст <span class="tag">для старой прошивки · 3 строки латиницей</span></h2>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="scrAuto" checked /> Строка 1 — статус (слой, BT, заряд)</label>
+          </div>
+          <div class="row"><span class="ln">1</span><input id="scrL0" class="grow" maxlength="40" /></div>
+          <div class="row"><span class="ln">2</span><input id="scrL1" class="grow" maxlength="40" /></div>
+          <div class="row"><span class="ln">3</span><input id="scrL2" class="grow" maxlength="40" /></div>
+          <div class="row wrap">
+            <select id="scrMode">
+              <option value="text">Мой текст</option>
+              <option value="clock">Часы и дата</option>
+              <option value="sys">Загрузка ПК (CPU / RAM)</option>
+              <option value="keys">Счётчик нажатий</option>
+              <option value="claude">Статус Claude</option>
+              <option value="pomodoro">Pomodoro</option>
+              <option value="talk">Таймер выступления</option>
+              <option value="weather">Погода</option>
+              <option value="pet">Питомец (тамагочи)</option>
+            </select>
+            <button class="btn primary" id="scrSend">Отправить</button>
+            <button class="btn" id="scrClear">Очистить</button>
+          </div>
+          <p class="hint">Шрифт экрана — латиница: кириллица автоматически транслитерируется.
+            Живые режимы (часы, CPU) обновляются, пока приложение открыто.</p>
+        </div>
+        <div class="card">
+          <h2>Предпросмотр</h2>
+          <canvas id="oled" width="128" height="32"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ПРОФИЛИ ============ -->
+    <section class="tab" id="tab-profiles">
+      <div class="grid2">
+        <div class="card">
+          <h2>Профили <span class="tag">сейчас: <b id="profNow">—</b></span></h2>
+          <div id="profList" class="list"></div>
+          <div class="row"><button class="btn" id="profAdd">+ Профиль</button><button class="btn ghost" id="profDel">Удалить выбранный</button></div>
+          <div id="profEditor">
+            <div class="row"><label style="width:120px">Название</label><input id="pfName" class="grow" /></div>
+            <div class="row"><label style="width:120px">Подсветка</label><select id="pfLight" class="grow"></select></div>
+            <div class="row"><label style="width:120px">Экран</label><select id="pfScreen" class="grow"></select></div>
+            <div class="row"><label style="width:120px">Текст экрана</label><input id="pfL0" class="grow" placeholder="строка 1" /><input id="pfL1" class="grow" placeholder="строка 2" /><input id="pfL2" class="grow" placeholder="строка 3" /></div>
+            <div class="row"><label style="width:120px">Горячие клавиши</label><select id="pfHotkeys" class="grow"></select></div>
+          </div>
+        </div>
+        <div class="card">
+          <h2>Автопереключение по программе</h2>
+          <div class="row">
+            <label class="check"><input type="checkbox" id="profAuto" checked /> Включено</label>
+          </div>
+          <div class="row"><label>Активное окно</label><b class="mono" id="activeWin">—</b></div>
+          <div class="row"><button class="btn" id="ruleAdd">Привязать это окно к профилю…</button></div>
+          <div id="ruleList" class="list"></div>
+          <p class="hint">Переключитесь в программу (например, КОМПАС), вернитесь сюда — её имя будет в «Активное окно».
+            Дальше профиль включится сам, как только вы откроете эту программу.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Свои наборы горячих клавиш</h2>
+        <textarea id="hkCustom" class="mono code" spellcheck="false"></textarea>
+        <div class="row"><button class="btn primary" id="hkSave">Сохранить наборы</button><span class="muted" id="hkErr"></span></div>
+        <p class="hint">JSON: <code>{"kompas": {"name": "КОМПАС-3D", "match": ["kompas"], "combos": {"Ctrl": {"N": "Создать"}, "Ctrl+Shift": {"S": "Сохранить как"}}}}</code>.
+          Клавиши — имена ZMK (A, N1, F5, SPACE, DEL…), модификаторы в порядке Ctrl, Win, Shift, Alt. Одноимённый набор заменяет встроенный.</p>
+      </div>
+    </section>
+
+    <!-- ============ ТРЕНАЖЁР ============ -->
+    <section class="tab" id="tab-trainer">
+      <div class="stat-tiles">
+        <div class="tile"><label>Скорость</label><b id="trWpm">0</b><span>слов/мин</span></div>
+        <div class="tile"><label>Точность</label><b id="trAcc">100%</b><span>&nbsp;</span></div>
+        <div class="tile"><label>Ошибок</label><b id="trErr">0</b><span>&nbsp;</span></div>
+        <div class="tile"><label>Рекорд</label><b id="trBest">0</b><span>слов/мин при точности ≥ 90%</span></div>
+      </div>
+      <div class="card">
+        <div class="row wrap">
+          <select id="trLang"><option value="ru">Русский</option><option value="en">English</option></select>
+          <input id="trCustom" class="grow" placeholder="Свой текст (необязательно)" />
+          <button class="btn primary" id="trStart">Старт</button>
+          <button class="btn ghost" id="trStop">Стоп</button>
+        </div>
+        <div id="trText" class="tr-text" tabindex="-1"></div>
+        <input id="trFocus" class="tr-focus" autocomplete="off" aria-label="Поле ввода тренажёра" />
+        <div class="row"><span class="muted" id="trHint"></span><span class="grow"></span><b id="trResult"></b></div>
+        <div id="trKb" class="kb-wrap"></div>
+        <p class="hint">Синяя — следующая клавиша, оранжевая — Shift, зелёная — клавиша слоя. На клавиатуре горит то же самое (главная половина),
+          ошибка вспыхивает красным. Не забудьте переключить раскладку Windows на нужный язык.</p>
+      </div>
+    </section>
+
+    <!-- ============ ИГРЫ ============ -->
+    <section class="tab" id="tab-games">
+      <div class="grid2">
+        <div class="card">
+          <h2>Мини-игры на подсветке <span class="tag">главная половина</span></h2>
+          <div class="row wrap">
+            <button class="btn primary" id="gMole">Поймай огонёк</button>
+            <button class="btn primary" id="gSimon">Повтори</button>
+            <button class="btn primary" id="gReact">Реакция</button>
+            <button class="btn ghost" id="gStop">Стоп</button>
+          </div>
+          <div class="game-score" id="gameScore">Выберите игру</div>
+          <p class="muted" id="gameRecords"></p>
+          <p class="hint"><b>Поймай огонёк</b> — 30 секунд жмите загоревшуюся клавишу. <b>Повтори</b> — запомните последовательность
+            и повторите, каждый раз на одну длиннее. <b>Реакция</b> — дождитесь зелёного и жмите любую клавишу, 5 попыток.</p>
+        </div>
+        <div class="card">
+          <h2>Поле</h2>
+          <div id="gameKb" class="kb-wrap"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Достижения <span class="tag" id="achCount"></span></h2>
+        <div id="achList" class="ach-list"></div>
+      </div>
+    </section>
+
+    <!-- ============ ИНСТРУМЕНТЫ ============ -->
+    <section class="tab" id="tab-tools">
+      <div class="grid2">
+        <div class="card">
+          <h2>Сниппеты на клавишах F13–F24</h2>
+          <div id="snipList"></div>
+          <p class="hint">Поставьте на любую клавишу F13–F24 (вкладка «Слои» → палитра «Сниппеты») — при нажатии приложение вставит текст
+            в активную программу. <code>\n</code> — перенос строки. Работает, пока Corne Studio запущена.</p>
+        </div>
+        <div>
+          <div class="card">
+            <h2>Pomodoro</h2>
+            <div class="row"><label>Работа, мин <input type="number" id="pomoWork" min="1" style="width:70px" /></label>
+              <label>Перерыв, мин <input type="number" id="pomoRest" min="1" style="width:70px" /></label></div>
+            <div class="row"><button class="btn primary" id="pomoGo">Старт</button><button class="btn ghost" id="pomoStop">Стоп</button><span class="muted" id="pomoState">остановлен</span></div>
+            <p class="hint">Подсветка снизу медленно краснеет к концу интервала. На экран — режим «Pomodoro».</p>
+          </div>
+          <div class="card">
+            <h2>Таймер выступления</h2>
+            <div class="row"><label>Длительность, мин <input type="number" id="talkMin" min="1" style="width:70px" /></label>
+              <button class="btn primary" id="talkGo">Старт</button><button class="btn ghost" id="talkStop">Стоп</button></div>
+            <div class="row"><span class="muted" id="talkState">остановлен</span></div>
+            <p class="hint">На экран — режим «Таймер выступления». Когда время выйдет, клавиатура мигнёт красным.</p>
+          </div>
+          <div class="card">
+            <h2>Погода на экране</h2>
+            <div class="row"><input id="wCity" class="grow" placeholder="Город, например Москва" /><button class="btn" id="wLoad">Обновить</button></div>
+            <div class="row"><span class="muted" id="wState"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Калибровка цвета</h2>
+          <div class="params">
+            <label>Красный <input type="range" id="calR" min="0.3" max="1" step="0.02" /></label>
+            <label>Зелёный <input type="range" id="calG" min="0.3" max="1" step="0.02" /></label>
+            <label>Синий <input type="range" id="calB" min="0.3" max="1" step="0.02" /></label>
+          </div>
+          <div class="row"><button class="btn" id="calWhite">Показать белый</button><label class="check"><input type="checkbox" id="calLive" checked /> обновлять сразу</label></div>
+          <p class="hint">Добейтесь чистого белого без оттенка — коэффициенты применяются ко всем своим режимам и играм.</p>
+        </div>
+        <div class="card">
+          <h2>Резервная копия</h2>
+          <div class="row"><button class="btn" id="bkExport">Сохранить настройки в файл…</button><button class="btn" id="bkImport">Восстановить из файла…</button></div>
+          <p class="hint">Режимы подсветки, профили, сниппеты, статистика, достижения, наборы горячих клавиш. Токен GitHub в файл не попадает.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ СТАТИСТИКА ============ -->
+    <section class="tab" id="tab-stats">
+      <div class="stat-tiles">
+        <div class="tile"><label>Скорость сейчас</label><b id="stWpm">0</b><span>слов/мин</span></div>
+        <div class="tile"><label>Рекорд сегодня</label><b id="stPeak">0</b><span>слов/мин</span></div>
+        <div class="tile"><label>Нажатий сегодня</label><b id="stToday">0</b><span>&nbsp;</span></div>
+        <div class="tile"><label>За 7 дней</label><b id="stWeek">0</b><span>&nbsp;</span></div>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>Батарея главной половины</h2>
+          <div class="row"><label>Сейчас <b id="batNow">—</b></label><label>Хватит на <b id="batLeft">—</b></label></div>
+          <canvas id="batChart" style="width:100%;height:160px"></canvas>
+          <p class="hint">График за 7 дней, пока приложение открыто. Прогноз — по скорости разряда за последние сутки.</p>
+        </div>
+        <div class="card">
+          <h2>Тепловая карта
+            <select id="heatRange" style="margin-left:8px"><option value="today">сегодня</option><option value="week">7 дней</option><option value="all">всё время</option></select>
+          </h2>
+          <div id="statsKb" class="kb-wrap"></div>
+          <div class="row"><button class="btn ghost" id="statsReset">Сбросить статистику</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ПРОШИВКА ============ -->
+    <section class="tab" id="tab-firmware">
+      <div class="card">
+        <h2>Собрать и прошить в одну кнопку</h2>
+        <div class="row">
+          <button class="btn" id="repoPick">Папка репозитория…</button>
+          <span class="mono muted grow" id="repoDir">папка не выбрана</span>
+          <span class="muted" id="repoChanges"></span>
+        </div>
+        <div class="row">
+          <input id="buildMsg" class="grow" placeholder="Что изменилось (необязательно), например: слой для КОМПАСа" />
+          <button class="btn primary" id="buildBtn" disabled>⚡ Собрать и прошить</button>
+        </div>
+        <div class="steps" id="buildLog"></div>
+        <p class="hint">Отправляет изменения из папки на GitHub, ждёт сборку (3–5 минут), скачивает и прошивает.
+          Нужны Git для Windows и токен GitHub (ниже). Если сборка упадёт — здесь появится строка с ошибкой.</p>
+      </div>
+      <div class="grid2">
+        <div class="card">
+          <h2>1. Откуда взять прошивку</h2>
+          <div class="row">
+            <label>Репозиторий</label>
+            <input id="ghRepo" class="mono grow" placeholder="yakory777/corne-studio" />
+            <button class="btn" id="ghRefresh">Сборки</button>
+          </div>
+          <div class="row">
+            <label>Токен GitHub</label>
+            <input id="ghToken" type="password" class="mono grow" placeholder="нужен для скачивания артефактов" />
+            <button class="btn" id="ghTokenSave">Сохранить</button>
+          </div>
+          <div id="runs" class="list"></div>
+          <div class="row"><button class="btn" id="fwLocal">Выбрать файл .uf2 / .zip…</button></div>
+        </div>
+        <div class="card">
+          <h2>2. Прошить</h2>
+          <div class="row">
+            <label>Главная половина</label>
+            <select id="mainSide"><option value="left">Левая</option><option value="right">Правая</option></select>
+            <button class="btn" id="switchMain" disabled>Сменить главную…</button>
+          </div>
+          <div id="fwFiles" class="list"><p class="muted">Файлы прошивки ещё не выбраны.</p></div>
+          <div class="row wrap">
+            <button class="btn primary" id="flashLeft" disabled>Прошить левую</button>
+            <button class="btn primary" id="flashRight" disabled>Прошить правую</button>
+            <button class="btn" id="flashReset" disabled>settings_reset…</button>
+          </div>
+          <div class="steps" id="flashLog"></div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>История прошивок</h2>
+        <div id="history" class="list"></div>
+      </div>
+    </section>
+
+    <!-- ============ ДЕБАГ ============ -->
+    <section class="tab" id="tab-debug">
+      <div class="subtabs">
+        <button class="sub active" data-sub="keys">Клавиши</button>
+        <button class="sub" data-sub="leds">Светодиоды</button>
+        <button class="sub" data-sub="oled">Экран</button>
+        <button class="sub" data-sub="console">Консоль</button>
+      </div>
+
+      <div class="subtab active" id="sub-keys">
+        <div class="card">
+          <div class="row">
+            <b id="keysTested">0 / 42 проверено</b>
+            <b id="keysBounce" class="bounce-count"></b>
+            <button class="btn" id="keysReset">Сбросить</button>
+            <span class="muted">Нажмите каждую клавишу — проверенные станут зелёными. Красная — дребезг (двойное срабатывание).</span>
+          </div>
+          <div id="debugKb" class="kb-wrap"></div>
+          <pre class="log small" id="keysLog"></pre>
+        </div>
+      </div>
+
+      <div class="subtab" id="sub-leds">
+        <div class="grid2">
+          <div class="card">
+            <h2>Главная половина — по одному светодиоду</h2>
+            <div class="row">
+              <label>Светодиод <b id="ledIdxLbl">0</b></label>
+              <input type="range" id="ledIdx" min="0" max="26" value="0" class="grow" />
+              <input type="color" id="ledColor" value="#ffffff" />
+            </div>
+            <div class="row wrap">
+              <button class="btn" id="ledOne">Зажечь только его</button>
+              <button class="btn primary" id="ledWalk">▶ Бегущий тест</button>
+              <label>шаг, мс <input type="number" id="ledWalkMs" value="400" min="50" step="50" style="width:80px" /></label>
+            </div>
+            <div class="row wrap">
+              <button class="btn" data-fill="ff0000">Все красные</button>
+              <button class="btn" data-fill="00ff00">Все зелёные</button>
+              <button class="btn" data-fill="0000ff">Все синие</button>
+              <button class="btn" data-fill="ffffff">Все белые</button>
+              <button class="btn" data-fill="000000">Погасить</button>
+              <button class="btn ghost" id="ledRelease">Вернуть подсветку прошивке</button>
+            </div>
+            <p class="hint">Если при бегущем тесте свет доходит до какого-то номера и дальше не идёт — обрыв цепочки
+              на следующем светодиоде (пайка или ориентация). Если цвета перепутаны — поправьте <code>color-mapping</code>.</p>
+          </div>
+          <div class="card">
+            <h2>Обе половины — через встроенную подсветку</h2>
+            <div class="row wrap">
+              <button class="btn" data-both="0 100 60">Красный</button>
+              <button class="btn" data-both="120 100 60">Зелёный</button>
+              <button class="btn" data-both="240 100 60">Синий</button>
+              <button class="btn" data-both="0 0 60">Белый</button>
+              <button class="btn" data-rgb="OFF">Выкл</button>
+            </div>
+            <div id="ledKb" class="kb-wrap"></div>
+            <p class="hint">Номера на клавишах — индекс светодиода в цепочке (0–5 — подсветка снизу).</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="subtab" id="sub-oled">
+        <div class="card">
+          <h2>Тест экрана (главная половина)</h2>
+          <div class="row wrap">
+            <button class="btn" data-dtest="1">Все пиксели</button>
+            <button class="btn" data-dtest="2">Рамка по краю</button>
+            <button class="btn" data-dtest="0">Обычный режим</button>
+            <button class="btn" id="dispText">Тестовый текст</button>
+          </div>
+          <p class="hint">«Все пиксели» — нет ли битых строк. «Рамка» — не обрезано ли изображение по краям.
+            Экран гаснет в простое (это настройка ZMK) — нажмите любую клавишу.</p>
+        </div>
+      </div>
+
+      <div class="subtab" id="sub-console">
+        <div class="card">
+          <div class="row">
+            <input id="conInput" class="mono grow" placeholder="Команда протокола, например: INFO, LED FILL ff0000, RGB TOG" />
+            <button class="btn primary" id="conSend">Отправить</button>
+            <label class="check"><input type="checkbox" id="conFrames" /> показывать кадры LED</label>
+            <button class="btn ghost" id="conClear">Очистить</button>
+          </div>
+          <pre class="log" id="conLog"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal hidden" id="portModal">
+    <div class="modal-box">
+      <h2>Выберите порт</h2>
+      <div id="portList" class="list"></div>
+      <div class="row"><button class="btn ghost" id="portCancel">Отмена</button></div>
+    </div>
+  </div>
+  <div class="modal hidden" id="pickModal">
+    <div class="modal-box">
+      <h2 id="pickTitle">Выберите</h2>
+      <div id="pickList" class="list"></div>
+      <div class="row"><button class="btn ghost" id="pickCancel">Отмена</button></div>
+    </div>
+  </div>
+  <div id="toast"></div>
+  <div id="hintPanel" class="hint-panel hidden"></div>
+
+  <script src="js/errors.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

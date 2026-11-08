@@ -1,0 +1,6 @@
+name: corne-tool
+build:
+  cmake: firmware
+  kconfig: firmware/Kconfig
+  settings:
+    snippet_root: firmware

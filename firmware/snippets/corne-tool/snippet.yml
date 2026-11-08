@@ -1,0 +1,5 @@
+name: corne-tool
+append:
+  DTS_EXTRA_CPPFLAGS: -DZMK_BEHAVIORS_KEEP_ALL
+  EXTRA_DTC_OVERLAY_FILE: corne-tool.overlay
+  EXTRA_CONF_FILE: corne-tool.conf

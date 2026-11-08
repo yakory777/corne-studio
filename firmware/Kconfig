@@ -1,0 +1,14 @@
+config CORNE_TOOL
+    bool "Corne Tool: USB serial protocol for the Corne Studio desktop app"
+    select RING_BUFFER
+
+if CORNE_TOOL
+
+config CORNE_TOOL_DISPLAY
+    bool "Status screen controlled by Corne Studio"
+    default y
+    depends on ZMK_DISPLAY && ZMK_DISPLAY_STATUS_SCREEN_CUSTOM
+    select LV_USE_LABEL
+    select LV_USE_IMG
+
+endif

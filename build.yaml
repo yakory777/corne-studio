@@ -1,0 +1,28 @@
+---
+# Два комплекта прошивки — выбирается, какая половина главная.
+# Главная подключается к компьютеру (USB/Bluetooth) и к приложению Corne Studio.
+# При смене главной половины: settings_reset на обе, прошить комплект, заново спарить Bluetooth.
+include:
+  # ---- Главная — левая (по умолчанию) ----
+  - board: nice_nano_v2
+    shield: corne_left
+    snippet: corne-tool
+    artifact-name: main-left_corne_left
+  - board: nice_nano_v2
+    shield: corne_right
+    artifact-name: main-left_corne_right
+
+  # ---- Главная — правая ----
+  - board: nice_nano_v2
+    shield: corne_right
+    snippet: corne-tool
+    cmake-args: -DCONFIG_ZMK_SPLIT_ROLE_CENTRAL=y
+    artifact-name: main-right_corne_right
+  - board: nice_nano_v2
+    shield: corne_left
+    cmake-args: -DCONFIG_ZMK_SPLIT_ROLE_CENTRAL=n
+    artifact-name: main-right_corne_left
+
+  # ---- Сброс настроек ----
+  - board: nice_nano_v2
+    shield: settings_reset

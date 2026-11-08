@@ -1,0 +1,22 @@
+{
+  "name": "corne-studio",
+  "productName": "Corne Studio",
+  "version": "0.7.0",
+  "description": "Настройка, прошивка и отладка клавиатуры Corne на ZMK",
+  "main": "main.js",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win portable"
+  },
+  "devDependencies": {
+    "electron": "^33.2.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "dev.yakory777.cornestudio",
+    "productName": "Corne Studio",
+    "files": ["main.js", "preload.js", "lib/**", "renderer/**", "assets/**"],
+    "win": { "target": "portable", "icon": "assets/icon.ico" }
+  }
+}
